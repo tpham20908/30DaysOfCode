@@ -259,3 +259,9 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+/MadLibs/nbproject/private/
+/MadLibs/build/
+/MadLibs/dist/
+/Day6/nbproject/private/
+/Day6/build/
+/Day6/dist/
