@@ -69,12 +69,31 @@ public class ShopifyChallenge {
         return products;
     }
     
+    public static void processCart(String discount_type, double discount_value, 
+            String collection, JSONArray products) {
+        double productPrice, total_amount, total_after_discount;
+        String productCollection;
+        
+        for (int i = 0, s = products.size(); i < s; i++) {
+            JSONObject product = (JSONObject) products.get(i);
+            productPrice = (double) product.get("price");
+            productCollection = (String) product.get("collection");
+
+            System.out.println(productPrice + " " + productCollection);
+        }
+    }
+    
     public static void main(String args[] ) {
         /* Enter your code here. Read input from STDIN. Print output to STDOUT */
         String strInput = getStringInput();
         long id;
         String discount_type, collection;
         double discount_value, cart_value, product_value;
+        
+        // declare variable to map queried product from cart API
+        String productName, productCollection;
+        double productPrice;
+        
         try {
             
             // get and parse input
@@ -89,15 +108,16 @@ public class ShopifyChallenge {
             
             discount_value = (double) jsonInput.get("discount_value");
             
-            if (jsonInput.keySet().contains("collection"))
+            if (jsonInput.keySet().contains("collection")) {
                 collection = (String) jsonInput.get("collection");
+                processCart(discount_type, discount_value, collection, products);
+            }
+            
             if (jsonInput.keySet().contains("cart_value"))
                 cart_value = (double) jsonInput.get("cart_value");
             if (jsonInput.keySet().contains("product_value"))
                 product_value = (double) jsonInput.get("product_value");
             
-            
-            System.out.println(discount_value);
             
         } catch (ParseException ex) {
             ex.printStackTrace();
