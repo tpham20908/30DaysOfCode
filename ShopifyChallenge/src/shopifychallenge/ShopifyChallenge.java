@@ -97,7 +97,7 @@ public class ShopifyChallenge {
                 product_value = (double) jsonInput.get("product_value");
             
             
-            
+            System.out.println(discount_value);
             
         } catch (ParseException ex) {
             ex.printStackTrace();

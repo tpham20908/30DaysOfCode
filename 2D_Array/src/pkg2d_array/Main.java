@@ -5,17 +5,15 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
-        int maxSum = 0;
+        int maxSum = Integer.MIN_VALUE;
         Scanner in = new Scanner(System.in);
         int arr[][] = new int[6][6];
-        outerloop:
         for(int i=0; i < 6; i++){
             for(int j=0; j < 6; j++){
                 arr[i][j] = in.nextInt();
-                if (in.hasNextLine())
-                    break;
             }
         }
+        // in.nextLine();
         
         for(int i=0; i < 6; i++){
             for(int j=0; j < 6; j++){
