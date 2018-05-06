@@ -16,10 +16,10 @@ import org.json.simple.parser.ParseException;
 
 public class ShopifyChallenge {
 
-    static String strUrl = "http://backend-challenge-fall-2018.herokuapp.com/carts.json?id=";    //1&page=1
+    static String baseStrUrl = "http://backend-challenge-fall-2018.herokuapp.com/carts.json?id=";    //1&page=1
     
-    public static URL getURL(String strUrl) throws MalformedURLException, IOException {
-        URL url = new URL(strUrl);
+    public static URL getURL(String baseStrUrl) throws MalformedURLException, IOException {
+        URL url = new URL(baseStrUrl);
         HttpURLConnection conn = (HttpURLConnection)url.openConnection();
         // set request type
         conn.setRequestMethod("GET");
@@ -33,8 +33,8 @@ public class ShopifyChallenge {
         return url;
     }
     
-    public static String getStringCart(String strUrl, long id) throws IOException {
-        URL url = getURL(strUrl + id);
+    public static String getStringCart(String baseStrUrl, long id, int pageNo) throws IOException {
+        URL url = getURL(baseStrUrl + id + "&page=" + pageNo);
         Scanner sc = new Scanner(url.openStream());
         String inline = "";
         while (sc.hasNext()) {
@@ -65,85 +65,92 @@ public class ShopifyChallenge {
     
     public static JSONArray getJsonProducts(String strUrl, long id) 
             throws IOException, ParseException {
-        // get cart API
-        String strCart = getStringCart(strUrl, id);
-        JSONObject jsonCart = stringToJson(strCart);
-        JSONArray products = (JSONArray) jsonCart.get("products");
-        return products;
+        JSONArray allProducts = new JSONArray();
+        int page = 1;
+        while (true) {
+            String currentStrCart = getStringCart(strUrl, id, page);
+            JSONObject currentJsonCart = stringToJson(currentStrCart);
+            JSONArray currentProducts = (JSONArray) currentJsonCart.get("products");
+            if (currentProducts.isEmpty()) 
+                break;
+            allProducts.addAll(currentProducts);
+            page++;
+        }
+        
+        return allProducts;
     }
     
-    public static long getTotal(String strUrl, long id) throws IOException, ParseException {
-        long total;
-        String strCart = getStringCart(strUrl, id);
-        JSONObject jsonCart = stringToJson(strCart);
-        JSONObject pagination = (JSONObject) jsonCart.get("pagination");
-        total = pagination.keySet().contains("total") ? 
-                (long) pagination.get("total") : 1;
-        return total;
-    }
-    
-    public static void processCart(String discount_type, double discount_value, 
-            String collection, long total, JSONArray products) {
-        double productPrice;
+    public static void processCart_collection_discount(double discount_value, String collection, JSONArray products) {
+        double product_price;
         double total_amount = 0.0;
         double total_discount = 0.0;
         double total_after_discount = 0.0;
-        String productCollection;
+        String product_collection;
         
         for (int i = 0, s = products.size(); i < s; i++) {
             JSONObject product = (JSONObject) products.get(i);
-            productPrice = (double) product.get("price");
+            product_price = (double) product.get("price");
             
             // assign productCollection to key collection if exists
-            productCollection = product.keySet().contains("collection") ?
+            product_collection = product.keySet().contains("collection") ?
                     (String) product.get("collection") : "";
             
-            total_amount += productPrice;
-            if (productCollection.equals(collection)) {
-                total_discount += discount_value;
+            total_amount += product_price;
+            if (product_collection.equals(collection)) {
+                total_discount += 
+                        product_price > discount_value ? discount_value : product_price;
             }
         }
-        total_amount *= total;
-        total_discount *= total;
+        
         total_after_discount = total_amount - total_discount;
-        System.out.printf("{ \"total_amount\": " + total_amount +  
-                    ", \"total_after_discount\": " + total_after_discount + "}");
+        
+        System.out.printf("{\n  \"total_amount\": " + total_amount +  
+                    ", \n  \"total_after_discount\": " + total_after_discount + " \n}");
     }
     
-    public static void processCart(String discount_type, double discount_value, 
-            double product_value, long total, JSONArray products) {
-        double productPrice;
+    public static void processCart_product_value_discount(double discount_value, double product_value, JSONArray products) {
+        double product_price;
         double total_amount = 0.0;
         double total_discount = 0.0;
         double total_after_discount = 0.0;
-        
-        System.out.println(discount_type);
-        System.out.println(discount_value);
-        System.out.println(product_value);
-        System.out.println(total);
-        
-        
+                
         for (int i = 0, s = products.size(); i < s; i++) {
             JSONObject product = (JSONObject) products.get(i);
+            product_price = (double) product.get("price");
             
-            System.out.println(product);
-            
-            productPrice = (double) product.get("price");
-            
-            
-            if (discount_type.equals("product") && productPrice >= product_value) {
-                total_amount += productPrice;
-                total_discount += discount_value;
+            total_amount += product_price;
+            if (product_price > product_value) {
+                total_discount += 
+                        product_price > discount_value ? discount_value : product_price;
             }
-            System.out.println(total_amount);
-            System.out.println(total_discount);
         }
-        total_amount *= total;
-        total_discount *= total;
+    
         total_after_discount = total_amount - total_discount;
         
-        System.out.printf("{ \"total_amount\": " + total_amount +  
-                    ", \"total_after_discount\": " + total_after_discount + "}");
+        System.out.printf("{\n  \"total_amount\": " + total_amount +  
+                    ", \n  \"total_after_discount\": " + total_after_discount + " \n}");
+    }
+    
+    public static void processCart_cart_value_discount(double discount_value, double cart_value, JSONArray products) {
+        double product_price;
+        double total_amount = 0.0;
+        double total_discount = 0.0;
+        double total_after_discount = 0.0;
+                
+        for (int i = 0, s = products.size(); i < s; i++) {
+            JSONObject product = (JSONObject) products.get(i);
+            product_price = (double) product.get("price");
+            
+            total_amount += product_price;
+        }
+        
+        total_discount =
+                total_amount >= cart_value ? discount_value : 0;
+    
+        total_after_discount = total_amount - total_discount;
+        
+        System.out.printf("{\n  \"total_amount\": " + total_amount +  
+                    ", \n  \"total_after_discount\": " + total_after_discount + " \n}");
     }
     
     public static void main(String args[] ) throws FileNotFoundException {
@@ -165,24 +172,24 @@ public class ShopifyChallenge {
             id = (long) jsonInput.get("id");
             
             // get JSONArray products from Cart API
-            JSONArray products = getJsonProducts(strUrl, id);
-            // get total products
-            long total = getTotal(strUrl, id);
-            
+            JSONArray products = getJsonProducts(baseStrUrl, id);
+                       
             discount_type = (String) jsonInput.get("discount_type");
             
             discount_value = (double) jsonInput.get("discount_value");
             
             if (jsonInput.keySet().contains("collection")) {
                 collection = (String) jsonInput.get("collection");
-                processCart(discount_type, discount_value, collection, total, products);
+                processCart_collection_discount(discount_value, collection, products);
             }
             
-            if (jsonInput.keySet().contains("cart_value"))
+            if (jsonInput.keySet().contains("cart_value")) {
                 cart_value = (double) jsonInput.get("cart_value");
+                processCart_cart_value_discount(discount_value, cart_value, products);
+            }
             if (jsonInput.keySet().contains("product_value")) {
                 product_value = (double) jsonInput.get("product_value");
-                processCart(discount_type, discount_value, product_value, total, products);
+                processCart_product_value_discount(discount_value, product_value, products);
             }
             
             
