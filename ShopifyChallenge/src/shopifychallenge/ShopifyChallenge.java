@@ -16,10 +16,11 @@ import org.json.simple.parser.ParseException;
 
 public class ShopifyChallenge {
 
-    static String baseStrUrl = "http://backend-challenge-fall-2018.herokuapp.com/carts.json?id=";    //1&page=1
+    static String baseStrUrl = "http://backend-challenge-fall-2018.herokuapp.com/carts.json?id=";
     
-    public static URL getURL(String baseStrUrl) throws MalformedURLException, IOException {
-        URL url = new URL(baseStrUrl);
+    public static URL getURL(String strUrl) 
+            throws MalformedURLException, IOException {
+        URL url = new URL(strUrl);
         HttpURLConnection conn = (HttpURLConnection)url.openConnection();
         // set request type
         conn.setRequestMethod("GET");
@@ -33,33 +34,27 @@ public class ShopifyChallenge {
         return url;
     }
     
-    public static String getStringCart(String baseStrUrl, long id, int pageNo) throws IOException {
+    public static String getStringCart(String baseStrUrl, long id, int pageNo) 
+            throws IOException {
         URL url = getURL(baseStrUrl + id + "&page=" + pageNo);
         Scanner sc = new Scanner(url.openStream());
-        String inline = "";
-        while (sc.hasNext()) {
-            // read each line from the API
-            inline += sc.nextLine();
-        }
-        sc.close();
-        return inline;
+        return getStringInput(sc);
     }
         
     public static JSONObject stringToJson(String str) throws ParseException {
         // Declare an instance of the JSONParser
-            JSONParser parse = new JSONParser();
-            // convert string inline to Json object cart
-            JSONObject result = (JSONObject)parse.parse(str);
-            return result;
+        JSONParser parse = new JSONParser();
+        // convert string str to Json object cart
+        JSONObject result = (JSONObject)parse.parse(str);
+        return result;
     }
     
-    public static String getStringInput() throws FileNotFoundException {
-        //Scanner sc = new Scanner(System.in);
-        Scanner sc = new Scanner(new File("test3.txt"));
+    public static String getStringInput(Scanner sc) {
         String strInput = "";
         while (sc.hasNext()) {
             strInput += sc.next();
         }
+        sc.close();
         return strInput;
     }
     
@@ -80,7 +75,8 @@ public class ShopifyChallenge {
         return allProducts;
     }
     
-    public static void processCart_collection_discount(double discount_value, String collection, JSONArray products) {
+    public static void processCart_collection_discount(double discount_value, 
+            String collection, JSONArray products) {
         double product_price;
         double total_amount = 0.0;
         double total_discount = 0.0;
@@ -103,12 +99,12 @@ public class ShopifyChallenge {
         }
         
         total_after_discount = total_amount - total_discount;
-        
         System.out.printf("{\n  \"total_amount\": " + total_amount +  
                     ", \n  \"total_after_discount\": " + total_after_discount + " \n}");
     }
     
-    public static void processCart_product_value_discount(double discount_value, double product_value, JSONArray products) {
+    public static void processCart_product_value_discount(double discount_value, 
+            double product_value, JSONArray products) {
         double product_price;
         double total_amount = 0.0;
         double total_discount = 0.0;
@@ -131,7 +127,8 @@ public class ShopifyChallenge {
                     ", \n  \"total_after_discount\": " + total_after_discount + " \n}");
     }
     
-    public static void processCart_cart_value_discount(double discount_value, double cart_value, JSONArray products) {
+    public static void processCart_cart_value_discount(double discount_value, 
+            double cart_value, JSONArray products) {
         double product_price;
         double total_amount = 0.0;
         double total_discount = 0.0;
@@ -155,25 +152,24 @@ public class ShopifyChallenge {
     
     public static void main(String args[] ) throws FileNotFoundException {
         /* Enter your code here. Read input from STDIN. Print output to STDOUT */
-        String strInput = getStringInput();
+        // declare variables to map user's input
+        // Scanner sc = new Scanner(System.in);
+        Scanner sc = new Scanner(new File("test3.txt"));
         long id;
         String discount_type, collection;
         double discount_value, cart_value, product_value;
-        
         // declare variable to map queried product from cart API
         String productName, productCollection;
         double productPrice;
         
+        String strInput = getStringInput(sc);
         try {
-            
-            // get and parse input
             
             JSONObject jsonInput = stringToJson(strInput);
             id = (long) jsonInput.get("id");
             
-            // get JSONArray products from Cart API
             JSONArray products = getJsonProducts(baseStrUrl, id);
-                       
+            
             discount_type = (String) jsonInput.get("discount_type");
             
             discount_value = (double) jsonInput.get("discount_value");
@@ -187,11 +183,11 @@ public class ShopifyChallenge {
                 cart_value = (double) jsonInput.get("cart_value");
                 processCart_cart_value_discount(discount_value, cart_value, products);
             }
+            
             if (jsonInput.keySet().contains("product_value")) {
                 product_value = (double) jsonInput.get("product_value");
                 processCart_product_value_discount(discount_value, product_value, products);
             }
-            
             
         } catch (ParseException ex) {
             ex.printStackTrace();
