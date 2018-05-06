@@ -22,8 +22,6 @@ public class ShopifyChallenge {
             throws MalformedURLException, IOException {
         URL url = new URL(strUrl);
         HttpURLConnection conn = (HttpURLConnection)url.openConnection();
-        // set request type
-        conn.setRequestMethod("GET");
         // open connection
         conn.connect();
         // get the corresponding response code
