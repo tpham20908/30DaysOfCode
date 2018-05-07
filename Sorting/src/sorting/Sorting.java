@@ -29,6 +29,7 @@ public class Sorting {
                     x[i + 1] = tmp;
 
                     swapPosition = i;
+                    System.out.println("swap position: " + swapPosition);
                 } // end if
 
                 printArray("Current", x);
