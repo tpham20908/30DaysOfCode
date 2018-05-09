@@ -4,7 +4,9 @@ public class BinarySearchTree {
 
     public static void main(String[] args) {
         // TODO code application logic here
-        
+        EmptyBST e = new EmptyBST();
+        NonEmptyBST n = new NonEmptyBST(22);
+        Testers.checkIsEmpty(e);
+        Testers.checkIsEmpty(n);
     }
-    
 }
