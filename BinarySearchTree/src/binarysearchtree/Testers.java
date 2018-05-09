@@ -18,4 +18,26 @@ public class Testers {
             }
         }
     }
+    
+    public static void checkAddMemberCardinality(Tree t, int x) throws Exception {
+        int nT = t.add(x).cardinality();
+        // Either something was added --> and the cardinality increased by 1
+        if (nT == t.cardinality() + 1) {
+            if (t.member(x)) {
+                throw new Exception("The cardinality increased by 1 but the item"
+                        + "that was added already member of the tree");
+            }
+        }
+        // or the thing that was added was already there and therefore not 
+        // really added so the cardinality stayed the same
+        else if (nT == t.cardinality()) {
+            if (!t.member(x)) {
+                throw new Exception("The cardinality didn't increase by 1 but"
+                        + "we added a new thing");
+            }
+        }
+        else {
+            throw new Exception("Something is wrong with our program");
+        }
+    }
 }
